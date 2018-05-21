@@ -1,12 +1,15 @@
 {
-  "name": "youtube-player-card",
-  "main": "youtube-player-card.js",
-  "dependencies": {
-    "@polymer/polymer": "^3.0.0"
-  },
-  "devDependencies": {
-    "@polymer/iron-demo-helpers": "^3.0.0-pre.19",
-    "@webcomponents/webcomponentsjs": "^2.0.0",
-    "wct-browser-legacy": "^1.0.0"
-  }
+    "name": "youtube-player-card",
+    "main": "youtube-player-card.js",
+    "dependencies": {
+        "@polymer/iron-icon": "^3.0.0-pre.19",
+        "@polymer/iron-iconset-svg": "^3.0.0-pre.19",
+        "@polymer/lit-element": "^0.5.1",
+        "@polymer/paper-card": "^3.0.0-pre.19"
+    },
+    "devDependencies": {
+        "@polymer/iron-demo-helpers": "^3.0.0-pre.19",
+        "@webcomponents/webcomponentsjs": "^2.0.0",
+        "wct-browser-legacy": "^1.0.0"
+    }
 }

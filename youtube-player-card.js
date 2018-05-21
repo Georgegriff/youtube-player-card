@@ -2,6 +2,8 @@ import { LitElement, html } from '@polymer/lit-element';
 import '@polymer/iron-icon/iron-icon';
 import './youtube-player-icons';
 import '@polymer/paper-card/paper-card';
+import { camelToDashCase } from '@polymer/polymer/lib/utils/case-map';
+
 /**
  * `youtube-player-card`
  * 
@@ -12,13 +14,13 @@ import '@polymer/paper-card/paper-card';
  */
 class YoutubePlayerCard extends LitElement {
 
-    style() {
+    styling() {
         return html `<style>
         :host {
                 display: block;
             }
 
-             :host #card {
+             :host .card-component {
                 width: var(--youtube-player-card-width, 240px);
             }
 
@@ -45,7 +47,6 @@ class YoutubePlayerCard extends LitElement {
                 z-index: 99;
                 border-radius: 100%;
                 cursor: pointer;
-                opacity: 0.3;
                 transition: opacity .3s ease-in-out;
             }
 
@@ -54,7 +55,7 @@ class YoutubePlayerCard extends LitElement {
             }
 
              :host .play-button {
-                color: var(--youtube-player-play-button-color, black);
+                color: var(--youtube-player-play-button-color, #7f7f7f);
                 width: 54px;
                 height: 54px;
                 z-index: 100;
@@ -67,17 +68,42 @@ class YoutubePlayerCard extends LitElement {
                 top: 0;
                 left: 0;
             }
+            
+
 
             .thumb-cont {
                 width: var(--youtube-player-card-width, 240px);
                 height: var(--youtube-player-card-height, 135px);
-                background: var(--youtube-player-thumbnail-background, #757575);
-                transition: opacity .5s ease-in-out;
+                transition: opacity .4s linear;
                 position: absolute;
                 top: 0;
                 left: 0;
                 z-index: 51;
                 pointer-events: none;
+
+            }
+
+            .thumb-colour {
+                background: var(--youtube-card-thumbnail-background, #ff0000);
+            }
+
+            .thumb-colour-hide {
+                opacity: 0;
+            }
+
+            .thumb-opacity { 
+                opacity: 1;
+            }
+
+            .thumb-hide {
+                opacity: 0;
+            }
+
+            .thumbnail-overlay { 
+                background: var(--youtube-player-overlay-background, rgba(0,0,0,0.5));
+                transition: opacity .9s linear;
+                height:100%;
+                z-index: 52;
             }
 
             .thumbnail {
@@ -89,18 +115,21 @@ class YoutubePlayerCard extends LitElement {
                 background-repeat: no-repeat;
                 background-position: center center;
                 background-size: cover;
-                transition: opacity .3s ease-in-out;
+                transition: opacity .3s linear;
                 z-index: 50;
+                background-image: var(--thumbnail-image);
             }
 
-
              :host .video-title {
-                font-size: 1em;
-                letter-spacing: -.012em;
-                line-height: 2em;
+                font-size: 1.25rem;
+                font-weight: 500;
+                letter-spacing: .0125em;
+                line-height: 2rem;
                 flex: 1;
                 margin-right: 15px;
-                color: var(--youtube-player-video-title-color, black);
+                -webkit-font-smoothing: antialiased;
+                color: var(--youtube-player-video-title-color, rgba(0,0,0,1));
+
             }
 
             .ellipsis {
@@ -110,12 +139,18 @@ class YoutubePlayerCard extends LitElement {
             }
 
             .channel-title {
-                font-size: 1em;
+                font-size: .875rem;
+                line-height: 1.375rem;
+                font-weight: 500;
+                letter-spacing: .00714em;
                 margin-right: 15px;
                 text-decoration: none;
-                display: block;
-                margin-top: -8px;
-                color: var(--youtube-player-channel-color, #757575);
+                color: var(--youtube-player-channel-color,rgba(0,0,0,0.54));
+                display: inherit;
+            }
+
+            .channel-title:hover {
+                color: var(--youtube-player-channel-color-hover,rgba(0,0,0,0.64));
             }
 
             .title-wrap {
@@ -144,6 +179,23 @@ class YoutubePlayerCard extends LitElement {
                 background: none;
                 cursor: pointer;
                 padding: 6px;
+                position: relative;
+            }
+            .open-yt:before {
+                transition: opacity 15ms linear;
+                top: 0%;
+                left: 0%;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                pointer-events: none;
+                border-radius: 50%;
+                position: absolute;
+                background:#000;
+                content: '';
+            }
+            .open-yt:hover:before {
+                opacity: 0.04;
             }
 
             .views {
@@ -152,7 +204,7 @@ class YoutubePlayerCard extends LitElement {
                 align-items: center;
                 border-top: 1px solid #e8e8e8;
                 padding: 2%;
-                font-size: 0.8em;
+                font-size: 0.9em;
             }
 
             .duration {
@@ -160,7 +212,8 @@ class YoutubePlayerCard extends LitElement {
             }
 
             iron-icon {
-                margin-right: 3px;
+              padding: 5px;
+                
             }
 
             .duration,
@@ -170,10 +223,15 @@ class YoutubePlayerCard extends LitElement {
                 margin: 0 3px 0 3px;
             }
 
+            .view-icon {
+                color: var(--youtube-player-card-view-count-color, rgba(0,0,0,0.5));
+            }
+
             .views,
             .open-yt,
             .duration {
-                color: #757575;
+                color: rgba(0,0,0,0.5);
+                font-weight:500;
             }
 
             .yt-card-wrap {
@@ -183,7 +241,7 @@ class YoutubePlayerCard extends LitElement {
     }
 
     _render() {
-        return html `${this.style()}${this._card(
+        return html `${this.styling()}${this._card(
             this._cardVideo(),
             this._cardActions()
         )}`;
@@ -196,8 +254,8 @@ class YoutubePlayerCard extends LitElement {
     _cardActions() {
         return html `<div class="actions-top">
             <div class="title-wrap">
-                <div class="video-title ellipsis">${this.videoTitle}</div>
-                <a class="channel-title ellipsis" target="_blank" href="${this._openInYoutube(this._youtubeChannel, this.channelId)}">${this.channelTitle}</a>
+                <div title$="${this.videoTitle}" class="video-title ellipsis">${this.videoTitle}</div>
+                <a title$="${this.channelTitle}" class="channel-title ellipsis" rel="noopener" target="_blank" href="${this._openInYoutube(this._youtubeChannel, this.channelId)}">${this.channelTitle}</a>
             </div>
         </div>
         <div class="views">
@@ -214,7 +272,7 @@ class YoutubePlayerCard extends LitElement {
 
 
     _viewCount(viewCount) {
-        return html `<iron-icon icon="icons:visibility"></iron-icon>${viewCount}`;
+        return html `<iron-icon class="view-icon" icon="icons:visibility"></iron-icon>${viewCount}`;
     }
 
     _duration(duration) {
@@ -231,7 +289,7 @@ class YoutubePlayerCard extends LitElement {
     }
 
     _videoContainer() {
-        return html `${this.showThumb ? this._updateThumb(this.thumbnail) : ''}
+        return html `${this._updateThumb(this.thumbnail, this.showThumb)}
                     <div id="videoElement">
                         <div class="video" id="video"></div>
                     </div>`;
@@ -239,11 +297,15 @@ class YoutubePlayerCard extends LitElement {
 
     _card(contents, actions) {
         return html `<div class="yt-card-card">
-            <paper-card>
+            <paper-card class="card-component">
                 <div class="card-content" id="contentVideo">${contents}</div>
                 <div class="card-actions">${actions}</div>
             </paper-card>
         </div>`;
+    }
+
+    static attributeNameForProperty(property) {
+        return camelToDashCase(property);
     }
 
     static get properties() {
@@ -259,18 +321,13 @@ class YoutubePlayerCard extends LitElement {
             videoKind: String,
             isFullScreen: Boolean,
             playAttempted: Boolean,
-            showThumb: Boolean
+            showThumb: Boolean,
+            _hasThumbImage: Boolean
         };
     }
 
     constructor() {
         super();
-
-
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
         if (window.YT) {
             this.YT = window.YT;
             this.onLoad(this.YT);
@@ -317,28 +374,24 @@ class YoutubePlayerCard extends LitElement {
         }
     }
 
-    _updateThumb(thumbnail) {
-        const thumbnailImg = html `<div class="thumbnail"></div>`;
-        return this.thumbnail ? html `${until(
-            this._waitForThumb(thumbnail),
-            this._defaultThumb()
-        )}` : this._defaultThumb();
+    _updateThumb(thumbnail, showThumb) {
+        const hide = !showThumb ? 'thumb-hide' : '';
+        return this._waitForThumb(thumbnail, hide);
 
     }
 
-    _waitForThumb(thumbnail) {
-        const img = document.createElement('div');
-        img.classList.add('thumbnail');
-        img.style['background-image'] = `url('${thumbnail}')`;
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve(img);
-            }, 200);
-        });
+    _waitForThumb(thumbnail, hide) {
+        this.style.setProperty('--thumbnail-image', `url('${thumbnail}')`);
+        setTimeout(() => {
+            this._hasThumbImage = true;
+        }, 300);
+        return this._defaultThumb(hide);
     }
 
-    _defaultThumb() {
-        return html `<div id="imageCont" class="thumb-cont"></div> `;
+    _defaultThumb(hide) {
+        const hideColor = this._hasThumbImage ? 'thumb-colour-hide' : '';
+        return html `<div class$="thumbnail-overlay thumb-cont ${hide}"></div><div class$="thumb-cont thumb-colour ${hideColor} ${hide}"></div>
+        <div id="imageCont" class$="thumb-cont thumb-opacity thumbnail ${hide}"></div>`;
     }
 
     _convertDuration(input) {

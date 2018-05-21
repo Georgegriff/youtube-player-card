@@ -206,6 +206,10 @@ class YoutubePlayerCard extends LitElement {
                 padding: 2%;
                 font-size: 0.9em;
             }
+            /* need a better way of scaling these to take up more space */
+            :host([size="720"]) .views {
+                font-size: 1.2em;
+            }
 
             .duration {
                 flex: 1;
@@ -322,25 +326,32 @@ class YoutubePlayerCard extends LitElement {
             isFullScreen: Boolean,
             playAttempted: Boolean,
             showThumb: Boolean,
-            _hasThumbImage: Boolean
+            _hasThumbImage: Boolean,
+            size: Number
         };
     }
 
     constructor() {
         super();
         if (window.YT) {
-            this.YT = window.YT;
-            this.onLoad(this.YT);
+            this.onLoad(window.YT);
         } else {
             window.onYouTubeIframeAPIReady = () => {
-                this.YT = window.YT;
-                this.onLoad(this.YT);
+                this.onLoad(window.YT);
             };
             var tag = document.createElement('script');
             tag.src = "https://www.youtube.com/iframe_api";
             var firstScriptTag = document.getElementsByTagName('script')[0];
+            if (firstScriptTag.src === tag.src) {
+                return;
+            }
             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         }
+
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
 
         this.openExternal = 'Open in YouTube';
         this.isFullScreen = false;
@@ -354,6 +365,45 @@ class YoutubePlayerCard extends LitElement {
 
         // youtube api
         this.player = null;
+
+        this._setSize(this.size)
+
+    }
+
+    _setSize(size) {
+        if (!size) {
+            return;
+        }
+        let width;
+        let height;
+
+        switch (size) {
+            case 240:
+                width = 426;
+                height = 240;
+                break;
+            case 360:
+                width = 640;
+                height = 360;
+                break;
+            case 480:
+                width = 854;
+                height = 480;
+                break;
+            case 720:
+                width = 1280;
+                height = 720;
+                break;
+            case 1080:
+                width = 1920;
+                height = 1080;
+                break;
+            default:
+                return;
+
+        }
+        this.style.setProperty('--youtube-player-card-width', `${width}px`)
+        this.style.setProperty('--youtube-player-card-height', `${height}px`);
     }
 
     stop() {
@@ -383,7 +433,7 @@ class YoutubePlayerCard extends LitElement {
     _waitForThumb(thumbnail, hide) {
         this.style.setProperty('--thumbnail-image', `url('${thumbnail}')`);
         setTimeout(() => {
-            this._hasThumbImage = true;
+            this._hasThumbImage = !!thumbnail;
         }, 300);
         return this._defaultThumb(hide);
     }
@@ -420,8 +470,8 @@ class YoutubePlayerCard extends LitElement {
 
     loadVideo(type, width, height, callback) {
         // check if ready first...
-        if (this.YT) {
-            this.player = new this.YT.Player(this.shadowRoot.querySelector('#video'), {
+        if (window.YT) {
+            this.player = new window.YT.Player(this.shadowRoot.querySelector('#video'), {
                 height: height,
                 width: width,
                 playerVars: {
